@@ -16,8 +16,8 @@ The suite is a standard pyramid:
 ```mermaid
 flowchart TD
     A["Integration — 21 tests<br/>every route, through Flask's test client"]
-    B["Data tests — 24 tests<br/>services against the real 49,547-match database"]
-    C["Unit tests — 46 tests<br/>pure functions: Elo, probabilities, ETL transforms"]
+    B["Data tests — 30 tests<br/>services against the real 49,547-match database"]
+    C["Unit tests — 40 tests<br/>pure functions: Elo, probabilities, ETL transforms"]
     C --> B --> A
 ```
 
@@ -131,8 +131,9 @@ python -m pytest -k "draw"             # anything about draws
 ```
 
 If the database has not been built yet, the data and integration tests **skip with an
-explanatory message** rather than failing — the pure unit tests still run, so the core
-logic is verifiable on a fresh checkout before any ETL run.
+explanatory message** rather than failing. On a fresh checkout `python -m pytest -q`
+reports **40 passed, 51 skipped** — the 40 being the pure unit tests, so the core logic is
+verifiable before any ETL run. After `python -m app.etl` the full 91 run.
 
 ---
 
