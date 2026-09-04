@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}World Cup Analytics{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<header class="site">
+  <div class="wrap nav">
+    <a class="brand" href="{{ url_for('pages.dashboard') }}"><span class="dot"></span> World Cup Analytics</a>
+    {% set page = request.endpoint %}
+    <a class="link {{ 'active' if page=='pages.dashboard' }}"    href="{{ url_for('pages.dashboard') }}">Dashboard</a>
+    <a class="link {{ 'active' if page=='pages.tournaments' }}"  href="{{ url_for('pages.tournaments') }}">Tournaments</a>
+    <a class="link {{ 'active' if page in ('pages.teams','pages.team_detail') }}" href="{{ url_for('pages.teams') }}">Teams</a>
+    <a class="link {{ 'active' if page=='pages.rankings' }}"     href="{{ url_for('pages.rankings') }}">Rankings</a>
+    <a class="link {{ 'active' if page=='pages.head_to_head' }}" href="{{ url_for('pages.head_to_head') }}">Head-to-head</a>
+    <a class="link {{ 'active' if page=='pages.predict' }}"      href="{{ url_for('pages.predict') }}">Predictor</a>
+    <a class="link {{ 'active' if page=='pages.records' }}"      href="{{ url_for('pages.records') }}">Records</a>
+  </div>
+</header>
+<main><div class="wrap">{% block content %}{% endblock %}</div></main>
+<footer class="site"><div class="wrap">
+  Built with Python · pandas · Flask · SQLite · Chart.js —
+  data: 49,547 international matches, 1872&ndash;2026.
+</div></footer>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

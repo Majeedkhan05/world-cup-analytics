@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Records · World Cup Analytics{% endblock %}
+{% block content %}
+<h1>Records</h1>
+<p class="lede">Leading scorers, biggest wins and every penalty shootout in World Cup history.</p>
+
+<div class="grid g-2-1" style="margin-bottom:16px">
+  <div class="card">
+    <h2>All-time World Cup goalscorers</h2>
+    <div class="scroll tall">
+    <table>
+      <thead><tr><th>#</th><th>Player</th><th>Team</th><th class="num">Goals</th>
+                 <th class="num">Pens</th><th>Span</th></tr></thead>
+      <tbody>
+      {% for s in scorers %}
+        <tr><td class="rank">{{ loop.index }}</td><td>{{ s.scorer }}</td>
+            <td><a href="{{ url_for('pages.team_detail', name=s.team) }}">{{ s.team }}</a></td>
+            <td class="num"><strong>{{ s.goals }}</strong></td>
+            <td class="num">{{ s.penalties }}</td>
+            <td class="mono">{{ s.first_year }}{% if s.last_year != s.first_year %}–{{ s.last_year }}{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Top 10 scorers</h2>
+    <div class="chartbox tallc"><canvas id="sc"></canvas></div>
+  </div>
+</div>
+
+<div class="grid g2" style="margin-bottom:16px">
+  <div class="card">
+    <h2>Biggest winning margins</h2>
+    <table>
+      <thead><tr><th>Year</th><th>Match</th><th class="num">Score</th></tr></thead>
+      <tbody>
+      {% for m in biggest %}
+        <tr><td class="mono">{{ m.year }}</td>
+            <td>{{ m.home_team }} v {{ m.away_team }}</td>
+            <td class="num">{{ m.home_score }}–{{ m.away_score }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h2>Highest scoring matches</h2>
+    <table>
+      <thead><tr><th>Year</th><th>Match</th><th class="num">Score</th><th class="num">Goals</th></tr></thead>
+      <tbody>
+      {% for m in highest %}
+        <tr><td class="mono">{{ m.year }}</td>
+            <td>{{ m.home_team }} v {{ m.away_team }}</td>
+            <td class="num">{{ m.home_score }}–{{ m.away_score }}</td>
+            <td class="num">{{ m.total }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Penalty shootouts ({{ shootouts|length }})</h2>
+  <div class="scroll tall">
+  <table>
+    <thead><tr><th>Date</th><th>Match</th><th class="num">After 120'</th><th>Won on penalties</th></tr></thead>
+    <tbody>
+    {% for s in shootouts %}
+      <tr><td class="mono">{{ s.date }}</td>
+          <td>{{ s.home_team }} v {{ s.away_team }}</td>
+          <td class="num">{{ s.home_score }}–{{ s.away_score }}</td>
+          <td><a href="{{ url_for('pages.team_detail', name=s.winner) }}">{{ s.winner }}</a></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+{% set top = scorers[:10] %}
+barChart('sc',
+  {{ top | map(attribute='scorer') | list | tojson }},
+  {{ top | map(attribute='goals') | list | tojson }},
+  C.gold, true);
+</script>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Head-to-head · World Cup Analytics{% endblock %}
+{% block content %}
+<h1>Head-to-head</h1>
+<p class="lede">Every meeting between two nations across all competitions since 1872.</p>
+
+<form class="controls" method="get">
+  <div class="field"><label for="a">Team A</label>
+    <select name="a" id="a">
+      {% for t in all_teams %}<option value="{{ t }}" {{ 'selected' if t==a }}>{{ t }}</option>{% endfor %}
+    </select></div>
+  <div class="field"><label for="b">Team B</label>
+    <select name="b" id="b">
+      {% for t in all_teams %}<option value="{{ t }}" {{ 'selected' if t==b }}>{{ t }}</option>{% endfor %}
+    </select></div>
+  <button type="submit">Compare</button>
+</form>
+
+{% if not result or result.summary.played == 0 %}
+  <div class="card"><p class="empty">{{ a }} and {{ b }} have never met in the dataset.</p></div>
+{% else %}
+  {% set s = result.summary %}
+  <div class="kpis">
+    <div class="kpi"><div class="v">{{ s.played }}</div><div class="k">Meetings</div></div>
+    <div class="kpi accent"><div class="v">{{ s.a_wins }}</div><div class="k">{{ a }} wins</div></div>
+    <div class="kpi"><div class="v">{{ s.draws }}</div><div class="k">Draws</div></div>
+    <div class="kpi"><div class="v">{{ s.b_wins }}</div><div class="k">{{ b }} wins</div></div>
+    <div class="kpi gold"><div class="v">{{ s.a_goals }}:{{ s.b_goals }}</div><div class="k">Goals</div></div>
+  </div>
+
+  <div class="probbar">
+    <i class="a" style="width:{{ (100 * s.a_wins / s.played) | round(1) }}%"></i>
+    <i class="d" style="width:{{ (100 * s.draws  / s.played) | round(1) }}%"></i>
+    <i class="b" style="width:{{ (100 * s.b_wins / s.played) | round(1) }}%"></i>
+  </div>
+
+  {% if prediction %}
+  <div class="card" style="margin-bottom:16px">
+    <h2>If they met tomorrow on neutral ground</h2>
+    <div class="probbar" style="margin-bottom:10px">
+      <i class="a" style="width:{{ prediction.pct_a }}%"></i>
+      <i class="d" style="width:{{ prediction.pct_draw }}%"></i>
+      <i class="b" style="width:{{ prediction.pct_b }}%"></i>
+    </div>
+    <div class="spread">
+      <span class="pa"><strong>{{ a }} {{ prediction.pct_a }}%</strong></span>
+      <span>Draw {{ prediction.pct_draw }}%</span>
+      <span class="pb"><strong>{{ b }} {{ prediction.pct_b }}%</strong></span>
+    </div>
+    <p class="note">Based on current Elo ratings ({{ prediction.rating_a }} vs
+       {{ prediction.rating_b }}). <a href="{{ url_for('pages.predict', a=a, b=b) }}">Open in predictor →</a></p>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <h2>All meetings</h2>
+    <div class="scroll tall">
+    <table>
+      <thead><tr><th>Date</th><th>Competition</th><th>Match</th><th class="num">Score</th><th>Venue</th></tr></thead>
+      <tbody>
+      {% for m in result.matches %}
+        <tr><td class="mono">{{ m.date }}</td><td>{{ m.tournament }}</td>
+            <td>{{ m.home_team }} v {{ m.away_team }}</td>
+            <td class="num">{{ m.home_score }}–{{ m.away_score }}</td>
+            <td>{{ m.city or '—' }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

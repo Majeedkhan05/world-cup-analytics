@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Rankings · World Cup Analytics{% endblock %}
+{% block content %}
+<h1>Elo world rankings</h1>
+<p class="lede">Ratings produced by replaying all 49,547 international matches since 1872 through
+   the Elo engine. Only nations with 100+ matches are ranked.</p>
+
+<div class="kpis">
+  <div class="kpi accent"><div class="v">{{ (metrics.holdout_accuracy * 100) | round(1) }}%</div>
+    <div class="k">Held-out accuracy</div></div>
+  <div class="kpi"><div class="v">{{ (metrics.holdout_baseline_accuracy * 100) | round(1) }}%</div>
+    <div class="k">Baseline</div></div>
+  <div class="kpi"><div class="v">{{ metrics.holdout_brier_score | round(3) }}</div>
+    <div class="k">Brier score</div></div>
+  <div class="kpi"><div class="v">{{ "{:,}".format(metrics.holdout_matches | int) }}</div>
+    <div class="k">Test matches</div></div>
+</div>
+
+<div class="grid g-2-1">
+  <div class="card">
+    <div class="scroll tall">
+    <table>
+      <thead><tr><th>#</th><th>Team</th><th class="num">Rating</th><th class="num">Peak</th>
+                 <th>Peak date</th><th class="num">Matches</th></tr></thead>
+      <tbody>
+      {% for r in rankings %}
+        <tr><td class="rank">{{ r.rank }}</td>
+            <td><a href="{{ url_for('pages.team_detail', name=r.team) }}">{{ r.team }}</a></td>
+            <td class="num">{{ r.rating }}</td>
+            <td class="num">{{ r.peak_rating }}</td>
+            <td class="mono">{{ r.peak_date }}</td>
+            <td class="num">{{ r.matches }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Top 12 by rating</h2>
+    <div class="chartbox tallc"><canvas id="top"></canvas></div>
+    <p class="note">A rating gap of 400 points means the stronger side is expected to take
+       roughly 10 times as many points as the weaker one.</p>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+{% set top = rankings[:12] %}
+barChart('top',
+  {{ top | map(attribute='team') | list | tojson }},
+  {{ top | map(attribute='rating') | list | tojson }},
+  C.accent, true, {{ (top | map(attribute='rating') | min - 60) | round | int }});
+</script>
+{% endblock %}

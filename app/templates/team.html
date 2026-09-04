@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ team }} · World Cup Analytics{% endblock %}
+{% block content %}
+<h1>{{ team }}</h1>
+<p class="lede">
+  {% if honours %}
+    {% set titles = honours | selectattr('result','equalto','Champion') | list %}
+    {{ titles|length }} World Cup {{ 'title' if titles|length == 1 else 'titles' }} ·
+  {% endif %}
+  {{ record.editions }} editions · current Elo rating
+  {{ rating.rating | round(1) if rating else 'n/a' }}
+</p>
+
+<div class="kpis">
+  <div class="kpi"><div class="v">{{ record.played }}</div><div class="k">WC matches</div></div>
+  <div class="kpi accent"><div class="v">{{ record.won }}</div><div class="k">Won</div></div>
+  <div class="kpi"><div class="v">{{ record.drawn }}</div><div class="k">Drawn</div></div>
+  <div class="kpi"><div class="v">{{ record.lost }}</div><div class="k">Lost</div></div>
+  <div class="kpi gold"><div class="v">{{ record.win_pct }}%</div><div class="k">Win rate</div></div>
+  <div class="kpi"><div class="v">{{ record.goals_for }}:{{ record.goals_against }}</div><div class="k">Goals</div></div>
+</div>
+
+<div class="grid g-2-1" style="margin-bottom:16px">
+  <div class="card">
+    <h2>Elo rating over time</h2>
+    <div class="chartbox"><canvas id="elo"></canvas></div>
+    <p class="note">Every international match {{ team }} has played, replayed through the rating
+       engine. All-time record across all competitions:
+       {{ all_time.played }} played, {{ all_time.won }}W {{ all_time.drawn }}D {{ all_time.lost }}L.</p>
+  </div>
+  <div class="card">
+    <h2>Honours</h2>
+    {% if honours %}
+      <table>
+        <thead><tr><th>Year</th><th>Result</th><th>Opponent</th></tr></thead>
+        <tbody>
+        {% for h in honours %}
+          <tr><td class="mono">{{ h.year }}</td>
+              <td><span class="pill {{ 'gold' if h.result=='Champion' else 'd' }}">{{ h.result }}</span></td>
+              <td>{{ h.opponent }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">No World Cup final appearances.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid g2">
+  <div class="card">
+    <h2>Campaign by campaign</h2>
+    <div class="tall">
+    <table>
+      <thead><tr><th>Year</th><th class="num">P</th><th class="num">W</th><th class="num">D</th>
+                 <th class="num">L</th><th class="num">GF</th><th class="num">GA</th></tr></thead>
+      <tbody>
+      {% for e in by_edition | reverse %}
+        <tr><td class="mono">{{ e.year }}</td><td class="num">{{ e.played }}</td>
+            <td class="num">{{ e.won }}</td><td class="num">{{ e.drawn }}</td>
+            <td class="num">{{ e.lost }}</td><td class="num">{{ e.goals_for }}</td>
+            <td class="num">{{ e.goals_against }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Recent World Cup matches</h2>
+    <div class="tall">
+    <table>
+      <thead><tr><th>Date</th><th>Opponent</th><th class="num">Score</th><th></th></tr></thead>
+      <tbody>
+      {% for m in matches %}
+        <tr><td class="mono">{{ m.date }}</td>
+            <td><a href="{{ url_for('pages.team_detail', name=m.opponent) }}">{{ m.opponent }}</a></td>
+            <td class="num">{{ m.gf }}–{{ m.ga }}</td>
+            <td><span class="pill {{ m.result|lower }}">{{ m.result }}</span></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+lineChart('elo',
+  {{ series | map(attribute='date') | list | tojson }},
+  {{ series | map(attribute='rating') | list | tojson }},
+  C.accent, { zero:false, points:false, maxTicks:8 });
+</script>
+{% endblock %}

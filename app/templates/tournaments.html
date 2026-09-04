@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Tournaments · World Cup Analytics{% endblock %}
+{% block content %}
+<h1>Tournaments</h1>
+<p class="lede">All {{ tournaments|length }} editions of the FIFA World Cup, with the champion
+   derived from the deciding match of each tournament.</p>
+
+<div class="card" style="margin-bottom:16px">
+  <h2>Goals per match over time</h2>
+  <div class="chartbox"><canvas id="trend"></canvas></div>
+</div>
+
+<div class="card">
+  <div class="scroll">
+  <table>
+    <thead><tr>
+      <th>Year</th><th>Host</th><th>Champion</th><th>Runner-up</th>
+      <th class="num">Teams</th><th class="num">Matches</th><th class="num">Goals</th><th class="num">Goals/match</th>
+    </tr></thead>
+    <tbody>
+    {% for t in tournaments %}
+      <tr>
+        <td class="mono">{{ t.year }}</td>
+        <td>{{ t.host }}</td>
+        <td><span class="trophy">★</span> <a href="{{ url_for('pages.team_detail', name=t.champion) }}">{{ t.champion }}</a></td>
+        <td><a href="{{ url_for('pages.team_detail', name=t.runner_up) }}">{{ t.runner_up }}</a></td>
+        <td class="num">{{ t.teams_count }}</td>
+        <td class="num">{{ t.matches }}</td>
+        <td class="num">{{ t.goals }}</td>
+        <td class="num">{{ t.goals_per_match }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+lineChart('trend',
+  {{ trend | map(attribute='year') | list | tojson }},
+  {{ trend | map(attribute='goals_per_match') | list | tojson }},
+  C.accent, { zero:false });
+</script>
+{% endblock %}

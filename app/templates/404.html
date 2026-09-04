@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Not found{% endblock %}
+{% block content %}
+<h1>Not found</h1>
+<p class="lede">That team or page isn't in the dataset.
+   <a href="{{ url_for('pages.teams') }}">Browse all teams</a>.</p>
+{% endblock %}

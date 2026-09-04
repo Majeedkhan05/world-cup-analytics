@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Predictor · World Cup Analytics{% endblock %}
+{% block content %}
+<h1>Match predictor</h1>
+<p class="lede">Turns two Elo ratings into win / draw / loss probabilities, using a draw model
+   calibrated on 150 years of real results.</p>
+
+<form class="controls" method="get">
+  <div class="field"><label for="a">Team A</label>
+    <select name="a" id="a">
+      {% for t in all_teams %}<option value="{{ t }}" {{ 'selected' if t==a }}>{{ t }}</option>{% endfor %}
+    </select></div>
+  <div class="field"><label for="b">Team B</label>
+    <select name="b" id="b">
+      {% for t in all_teams %}<option value="{{ t }}" {{ 'selected' if t==b }}>{{ t }}</option>{% endfor %}
+    </select></div>
+  <label class="check"><input type="checkbox" name="neutral" value="1" {{ 'checked' if neutral }}>
+    Neutral venue</label>
+  <button type="submit">Predict</button>
+</form>
+
+{% if not prediction %}
+  <div class="card"><p class="empty">Pick two different teams.</p></div>
+{% else %}
+  <div class="pred">
+    <div class="side">
+      <div class="name">{{ prediction.team_a }}</div>
+      <div class="elo">Elo {{ prediction.rating_a }}</div>
+      <div class="p pa">{{ prediction.pct_a }}%</div>
+    </div>
+    <div class="mid"><div class="lbl">Draw</div><div class="p">{{ prediction.pct_draw }}%</div></div>
+    <div class="side">
+      <div class="name">{{ prediction.team_b }}</div>
+      <div class="elo">Elo {{ prediction.rating_b }}</div>
+      <div class="p pb">{{ prediction.pct_b }}%</div>
+    </div>
+  </div>
+
+  <div class="probbar">
+    <i class="a" style="width:{{ prediction.pct_a }}%"></i>
+    <i class="d" style="width:{{ prediction.pct_draw }}%"></i>
+    <i class="b" style="width:{{ prediction.pct_b }}%"></i>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h2>How this number is produced</h2>
+      <ol style="margin:0;padding-left:20px;color:var(--muted);font-size:14px;line-height:1.75">
+        <li>Rating gap is
+            <span class="mono">{{ prediction.rating_a }} − {{ prediction.rating_b }}
+            = {{ prediction.rating_gap }}</span>{% if not prediction.neutral %},
+            plus a home bonus for {{ prediction.team_a }}{% endif %}.</li>
+        <li>The Elo curve turns that gap into an expected score
+            <span class="mono">E = 1 / (1 + 10<sup>−gap/400</sup>)</span>.</li>
+        <li>The draw rate for a gap this size is looked up from the calibration table below.</li>
+        <li>Since <span class="mono">E = P(win) + ½·P(draw)</span>, the three probabilities follow.</li>
+      </ol>
+      <p class="note">Favourite: <strong>{{ prediction.favourite }}</strong> ·
+         venue: {{ 'neutral' if prediction.neutral else prediction.team_a ~ ' at home' }}</p>
+    </div>
+    <div class="card">
+      <h2>Model performance</h2>
+      <table>
+        <tbody>
+          <tr><td>Accuracy on unseen matches</td>
+              <td class="num"><strong>{{ (metrics.holdout_accuracy * 100) | round(1) }}%</strong></td></tr>
+          <tr><td>Baseline (always pick home win)</td>
+              <td class="num">{{ (metrics.holdout_baseline_accuracy * 100) | round(1) }}%</td></tr>
+          <tr><td>Brier score (lower is better)</td>
+              <td class="num">{{ metrics.holdout_brier_score | round(3) }}</td></tr>
+          <tr><td>Matches in test set</td>
+              <td class="num">{{ "{:,}".format(metrics.holdout_matches | int) }}</td></tr>
+          <tr><td>Matches used overall</td>
+              <td class="num">{{ "{:,}".format(metrics.matches_evaluated | int) }}</td></tr>
+        </tbody>
+      </table>
+      <p class="note">The draw model is fitted only on matches before 2015 and then scored on
+         everything after, so nothing in the test set influenced the model.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="spread"><h2>Draw-rate calibration</h2>
+      <span class="note" style="margin:0">Measured, not assumed</span></div>
+    <div class="chartbox"><canvas id="cal"></canvas></div>
+    <p class="note">Evenly matched teams draw far more often than mismatched ones. Each bar is
+       the observed draw rate for matches whose pre-kick-off Elo gap fell in that band.</p>
+  </div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if prediction %}
+<script>
+barChart('cal',
+  {{ calibration | map(attribute='gap_lo') | list | tojson }},
+  {{ calibration | map(attribute='draw_rate') | list | tojson }},
+  C.violet);
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Teams · World Cup Analytics{% endblock %}
+{% block content %}
+<h1>Teams</h1>
+<p class="lede">{{ teams|length }} nations have played at a World Cup. Pick one for its full
+   record, honours and rating history.</p>
+<div class="card">
+  <input id="filter" type="search" placeholder="Filter teams…" style="width:100%;margin-bottom:14px">
+  <div class="taglist" id="list">
+    {% for t in teams %}
+      <a class="tag" href="{{ url_for('pages.team_detail', name=t) }}">{{ t }}</a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const box = document.getElementById('filter');
+const tags = [...document.querySelectorAll('#list .tag')];
+box.addEventListener('input', () => {
+  const q = box.value.toLowerCase();
+  tags.forEach(t => { t.style.display = t.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+});
+</script>
+{% endblock %}
