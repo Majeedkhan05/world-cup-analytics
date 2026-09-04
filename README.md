@@ -7,6 +7,10 @@ you ask for.
 
 > Software Engineering course project · Project #11 — FIFA World Cup Analytics
 
+**Presentation:** [`docs/World-Cup-Analytics-Presentation.pptx`](docs/World-Cup-Analytics-Presentation.pptx)
+([PDF](docs/World-Cup-Analytics-Presentation.pdf)) — 12 slides with speaker notes.
+**Docs:** [SRS](docs/SRS.md) · [Design](docs/DESIGN.md) · [Testing](docs/TESTING.md) · [Viva notes](docs/PRESENTATION.md)
+
 ---
 
 ## What it does
