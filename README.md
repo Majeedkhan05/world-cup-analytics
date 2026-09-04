@@ -156,10 +156,15 @@ view, which turns every "how did team X do" question into a single `WHERE team_i
 ## Running it
 
 ```bash
-pip install -r requirements.txt
-python -m app.etl      # builds the database from data/raw (about 5 seconds)
+pip install -r requirements-dev.txt
+python -m app.etl      # rebuilds the database from data/raw (about 5 seconds)
 python run.py          # http://127.0.0.1:8000
 ```
+
+The built database is committed, so `pip install -r requirements.txt && python run.py`
+is enough just to browse the site. `requirements.txt` holds only the runtime dependency
+(Flask); `requirements-dev.txt` adds pandas and pytest, which are needed to rebuild the
+database and run the tests but not to serve it.
 
 Run the tests:
 
@@ -227,6 +232,26 @@ a public archive of international football results.
 
 Verified against known results: 2018 France 4–2 Croatia (Moscow), 2022 Argentina 3–3
 France won on penalties (Lusail), 2014 Germany 1–0 Argentina (Rio de Janeiro).
+
+## Deployment
+
+The site runs on Vercel as a single Python serverless function.
+
+| File | Role |
+|---|---|
+| `api/index.py` | Entry point — exposes the Flask app as a WSGI callable |
+| `vercel.json` | Rewrites every path to that function |
+| `.vercelignore` | Keeps raw CSVs, docs, tests and scripts out of the bundle |
+
+Two details make it work in a serverless environment:
+
+1. **The database ships pre-built.** All the expensive work happens in the ETL at
+   development time, so the function only ever reads.
+2. **SQLite is opened read-only.** Serverless filesystems are read-only, so the
+   connection uses `file:...?mode=ro&immutable=1`, which tells SQLite to skip locking
+   and journal files rather than failing when it cannot create them.
+
+Because the web tier needs no pandas, the deployed function installs Flask alone.
 
 ## Built with
 

@@ -8,18 +8,28 @@ from flask import g, current_app
 from app.config import DB_PATH
 
 
-def connect(path=DB_PATH):
-    """Open a connection that returns dict-like rows and enforces FKs."""
-    conn = sqlite3.connect(path)
+def connect(path=DB_PATH, read_only=False):
+    """Open a connection that returns dict-like rows and enforces FKs.
+
+    `read_only` opens the file through SQLite's URI syntax with mode=ro and
+    immutable=1. That is what lets the app run on a serverless platform, where
+    the filesystem is read-only: SQLite then skips locking and journal files
+    entirely instead of failing when it cannot create them.
+    """
+    if read_only:
+        conn = sqlite3.connect(f"file:{path}?mode=ro&immutable=1", uri=True)
+    else:
+        conn = sqlite3.connect(path)
+        conn.execute("PRAGMA foreign_keys = ON")
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
 
 def get_db():
     """Per-request connection, cached on Flask's application context."""
     if "db" not in g:
-        g.db = connect(current_app.config["DB_PATH"])
+        g.db = connect(current_app.config["DB_PATH"],
+                       read_only=current_app.config.get("READ_ONLY_DB", False))
     return g.db
 
 

@@ -5,9 +5,10 @@ from app.config import DB_PATH
 from app import db
 
 
-def create_app(db_path=DB_PATH):
+def create_app(db_path=DB_PATH, read_only=False):
     app = Flask(__name__)
     app.config["DB_PATH"] = db_path
+    app.config["READ_ONLY_DB"] = read_only
     app.config["JSON_SORT_KEYS"] = False
 
     app.teardown_appcontext(db.close_db)

@@ -1,0 +1,10 @@
+# Only the app and its pre-built database need to ship to the serverless
+# function. Everything below is development-only weight.
+data/raw/
+docs/
+tests/
+scripts/
+node_modules/
+*.md
+!README.md
+.claude/

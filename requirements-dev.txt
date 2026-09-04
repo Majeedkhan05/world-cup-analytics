@@ -1,0 +1,4 @@
+# Everything needed to build the database and run the tests locally.
+-r requirements.txt
+pandas==2.3.3
+pytest==8.3.3
