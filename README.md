@@ -241,7 +241,8 @@ The site runs on Vercel as a single Python serverless function.
 |---|---|
 | `api/index.py` | Entry point — exposes the Flask app as a WSGI callable |
 | `vercel.json` | Rewrites every path to that function |
-| `.vercelignore` | Keeps raw CSVs, docs, tests and scripts out of the bundle |
+| `pyproject.toml` | Pins the runtime dependency tree for the function |
+| `.python-version` | Pins Python 3.12 |
 
 Two details make it work in a serverless environment:
 
