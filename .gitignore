@@ -19,3 +19,4 @@ htmlcov/
 
 # Personal study/demo notes — not part of the project
 DEMO-GUIDE.pdf
+.env*
